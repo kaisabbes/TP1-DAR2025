@@ -4,22 +4,46 @@ import java.net.*;
 public class Server {
     public static void main(String[] args) {
         try {
-            ServerSocket serverSocket = new ServerSocket(1234);
-            System.out.println("Je suis un serveur en attente de la connexion d'un client");
+            InetAddress ipAddress = InetAddress.getLocalHost();
+            int port = 1234;
+            InetSocketAddress serverAddress = new InetSocketAddress(ipAddress, port);
+            ServerSocket serverSocket = new ServerSocket();
+            serverSocket.bind(serverAddress);
+            System.out.println("Serveur en écoute sur " + ipAddress.getHostAddress() + ":" + port);
+            System.out.println("En attente de connexion d’un client...");
             Socket clientSocket = serverSocket.accept();
-            System.out.println("Un client est connecté !");
+            System.out.println("Client connecté depuis " + clientSocket.getInetAddress().getHostAddress());
             DataInputStream is = new DataInputStream(clientSocket.getInputStream());
             DataOutputStream os = new DataOutputStream(clientSocket.getOutputStream());
-            int x;
+            int choix;
+            double a, b, resultat;
             do {
-                x = is.readInt();
-                System.out.println("Nombre reçu du client : " + x);
-                if (x != 0) {
-                    int resultat = x * 5;
-                    System.out.println("Résultat calculé "+x+"*5) = " + resultat);
-                    os.writeInt(resultat);
+                choix = is.readInt();
+                if (choix == 0) {
+                    System.out.println("Le client a quitté la session.");
+                    break;
                 }
-            } while (x != 0);
+                a = is.readDouble();
+                b = is.readDouble();
+                resultat = 0;
+                switch (choix) {
+                    case 1: resultat = a + b; break;
+                    case 2: resultat = a - b; break;
+                    case 3: resultat = a * b; break;
+                    case 4:
+                        if (b != 0) {
+                            resultat = a / b;
+                        } else {
+                            System.out.println("Erreur : division par zéro !");
+                        }
+                        break;
+                    default:
+                        System.out.println("Choix invalide !");
+                        break;
+                }
+                os.writeDouble(resultat);
+                System.out.println("Opération exécutée (choix " + choix + ") : Résultat = " + resultat);
+            } while (true);
             is.close();
             os.close();
             clientSocket.close();
